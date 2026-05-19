@@ -12,7 +12,7 @@ export class WidthApplier {
 	applyToView(view: MarkdownView, width: number): void {
 		const el = view.contentEl;
 		el.setAttribute(DATA_ATTR_MANAGED, "true");
-		el.style.setProperty(CSS_VAR_NAME, `${width}px`);
+		el.style.setProperty(CSS_VAR_NAME, `${width}px`, "important");
 	}
 
 	clearFromView(view: MarkdownView): void {

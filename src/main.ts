@@ -9,6 +9,9 @@ import { WidthApplier } from "./ui/width-applier";
 import { WidthInputModal } from "./ui/width-input-modal";
 import type { RememberWidthSettings } from "./utils/types";
 
+/** Obsidian's "readable line length" config key. */
+const READABLE_LINE_LENGTH_KEY = "readableLineLength";
+
 export default class RememberWidthPlugin extends Plugin {
 	settings!: RememberWidthSettings;
 	store!: WidthStore;
@@ -17,6 +20,7 @@ export default class RememberWidthPlugin extends Plugin {
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
+		await this.snapshotReadableLineLengthIfNeeded();
 
 		this.store = new WidthStore(this);
 		this.widthApplier = new WidthApplier(this);
@@ -37,6 +41,7 @@ export default class RememberWidthPlugin extends Plugin {
 	onunload(): void {
 		this.store?.flush();
 		this.widthApplier?.clearAll();
+		this.restoreReadableLineLength();
 	}
 
 	async loadSettings(): Promise<void> {
@@ -53,6 +58,7 @@ export default class RememberWidthPlugin extends Plugin {
 	}
 
 	refreshAll(): void {
+		this.applyReadableLineLengthState();
 		if (this.settings.enabled) {
 			this.widthApplier.applyToAll();
 		} else {
@@ -69,5 +75,73 @@ export default class RememberWidthPlugin extends Plugin {
 			this.widthApplier.applyToFile(path);
 			this.statusBar?.refresh();
 		}).open();
+	}
+
+	/**
+	 * On the very first run, remember whatever the user had set for
+	 * Obsidian's "readable line length" toggle, so we can restore it
+	 * when this plugin is disabled.
+	 */
+	private async snapshotReadableLineLengthIfNeeded(): Promise<void> {
+		if (this.settings.savedReadableLineLength !== undefined) return;
+		const current = this.getObsidianConfig(READABLE_LINE_LENGTH_KEY);
+		// Obsidian's default for this key is `true` when unset.
+		this.settings.savedReadableLineLength =
+			typeof current === "boolean" ? current : true;
+		await this.saveSettings();
+	}
+
+	/**
+	 * Apply the desired state of Obsidian's "readable line length" toggle:
+	 *   plugin enabled  => force OFF (so our per-file widths are the sole
+	 *                       authority and never get clamped by the global
+	 *                       limit).
+	 *   plugin disabled => restore the user's original preference.
+	 */
+	private applyReadableLineLengthState(): void {
+		const target = this.settings.enabled
+			? false
+			: this.settings.savedReadableLineLength ?? true;
+		this.writeReadableLineLength(target);
+	}
+
+	private restoreReadableLineLength(): void {
+		const saved = this.settings.savedReadableLineLength;
+		if (saved === undefined) return;
+		this.writeReadableLineLength(saved);
+	}
+
+	private writeReadableLineLength(value: boolean): void {
+		const current = this.getObsidianConfig(READABLE_LINE_LENGTH_KEY);
+		if (current === value) return;
+		this.setObsidianConfig(READABLE_LINE_LENGTH_KEY, value);
+		this.refreshObsidianOptions();
+	}
+
+	private getObsidianConfig(key: string): unknown {
+		const vault = this.app.vault as unknown as {
+			getConfig?: (k: string) => unknown;
+		};
+		return typeof vault.getConfig === "function"
+			? vault.getConfig(key)
+			: undefined;
+	}
+
+	private setObsidianConfig(key: string, value: unknown): void {
+		const vault = this.app.vault as unknown as {
+			setConfig?: (k: string, v: unknown) => void;
+		};
+		if (typeof vault.setConfig === "function") {
+			vault.setConfig(key, value);
+		}
+	}
+
+	private refreshObsidianOptions(): void {
+		const ws = this.app.workspace as unknown as {
+			updateOptions?: () => void;
+		};
+		if (typeof ws.updateOptions === "function") {
+			ws.updateOptions();
+		}
 	}
 }

@@ -66,3 +66,15 @@
 	min-width: 5em;
 	text-align: right;
 }
+
+.rcw-file-row-input {
+	width: 6em;
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+	padding: 2px 6px;
+}
+
+.rcw-file-row-unit {
+	color: var(--text-muted);
+	margin-left: -2px;
+}

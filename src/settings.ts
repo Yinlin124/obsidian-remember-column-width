@@ -1,4 +1,4 @@
-import { App, Notice, PluginSettingTab, Setting, TFile } from "obsidian";
+import { App, Notice, PluginSettingTab, Setting } from "obsidian";
 import type RememberWidthPlugin from "./main";
 import { DEFAULTS } from "./utils/constants";
 import type { RememberWidthSettings } from "./utils/types";
@@ -22,19 +22,6 @@ export class RememberWidthSettingTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
-
-		new Setting(containerEl)
-			.setName("Enable plugin")
-			.setDesc(
-				"Apply per-file widths. Turn off to restore Obsidian's default behavior.",
-			)
-			.addToggle((t) =>
-				t.setValue(this.plugin.settings.enabled).onChange(async (v) => {
-					this.plugin.settings.enabled = v;
-					await this.plugin.saveSettings();
-					this.plugin.refreshAll();
-				}),
-			);
 
 		new Setting(containerEl)
 			.setName("Default width (px)")
@@ -124,24 +111,40 @@ export class RememberWidthSettingTab extends PluginSettingTab {
 		for (const [path, width] of entries) {
 			const row = list.createDiv({ cls: "rcw-file-row" });
 			row.createSpan({ cls: "rcw-file-row-path", text: path });
-			row.createSpan({
-				cls: "rcw-file-row-width",
-				text: `${width}px`,
-			});
 
-			const openBtn = row.createEl("button", { text: "Open" });
-			openBtn.addEventListener("click", async () => {
-				const af = this.app.vault.getAbstractFileByPath(path);
-				if (af instanceof TFile) {
-					const leaf = this.app.workspace.getLeaf(false);
-					await leaf.openFile(af);
-				} else {
-					new Notice(`File not found: ${path}`);
+			const input = row.createEl("input", {
+				cls: "rcw-file-row-input",
+				attr: { type: "number", inputmode: "numeric" },
+			});
+			input.min = String(this.plugin.settings.minWidth);
+			input.max = String(this.plugin.settings.maxWidth);
+			input.value = String(width);
+
+			const commit = () => {
+				const n = Number(input.value);
+				if (!Number.isFinite(n)) {
+					input.value = String(this.plugin.settings.fileWidths[path] ?? width);
+					return;
+				}
+				const clamped = this.clampToBounds(n);
+				if (clamped !== n) input.value = String(clamped);
+				this.plugin.store.set(path, clamped);
+				this.plugin.store.flush();
+				this.plugin.widthApplier.applyToFile(path);
+				this.plugin.statusBar?.refresh();
+			};
+			input.addEventListener("change", commit);
+			input.addEventListener("keydown", (e) => {
+				if (e.key === "Enter") {
+					e.preventDefault();
+					input.blur();
 				}
 			});
 
-			const delBtn = row.createEl("button", { text: "Remove" });
-			delBtn.addEventListener("click", () => {
+			row.createSpan({ cls: "rcw-file-row-unit", text: "px" });
+
+			const resetBtn = row.createEl("button", { text: "Reset default" });
+			resetBtn.addEventListener("click", () => {
 				this.plugin.store.reset(path);
 				this.plugin.store.flush();
 				this.plugin.widthApplier.applyToFile(path);

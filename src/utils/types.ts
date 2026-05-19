@@ -8,4 +8,5 @@ export interface RememberWidthSettings {
 	maxWidth: number;
 	enabled: boolean;
 	fileWidths: FileWidthMap;
+	savedReadableLineLength?: boolean;
 }
