@@ -1,14 +1,24 @@
-/* Remember Column Width — force per-file width regardless of global "readable line length".
- * IMPORTANT: do NOT target `.cm-line`. CodeMirror requires `.cm-line` to fill
- * its parent (`.cm-content`) for cursor positioning, selection geometry, and
- * line-wrap measurement. Constraining it breaks the editor (text collapses to
- * one character per row). Constrain the sizer containers only. */
+/* Remember Column Width — force per-file width regardless of global
+ * "readable line length".
+ *
+ * Mirror Obsidian's own `.is-readable-line-width` rules exactly. Do NOT
+ * touch `.cm-contentContainer` or `.cm-line`:
+ *   - Obsidian sets `.cm-content { width: 0; flex-basis: unset !important }`
+ *     as a flex-stretch trick. Constraining `.cm-contentContainer` with
+ *     `margin: auto` breaks that trick and collapses the editor to 0px wide
+ *     (text renders one character per row) in vaults where other plugins
+ *     (e.g. Infio Copilot) also touch `.cm-sizer`.
+ *   - `.cm-line` must fill `.cm-content` for cursor / selection geometry.
+ */
 .view-content[data-rcw-managed] .markdown-source-view .cm-sizer,
-.view-content[data-rcw-managed] .markdown-source-view .cm-contentContainer,
 .view-content[data-rcw-managed] .markdown-preview-view .markdown-preview-sizer {
 	max-width: var(--file-line-width) !important;
 	margin-left: auto !important;
 	margin-right: auto !important;
+}
+
+.view-content[data-rcw-managed] .markdown-source-view .cm-content {
+	max-width: var(--file-line-width) !important;
 }
 
 /* Status bar slider */
