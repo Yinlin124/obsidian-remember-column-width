@@ -6,29 +6,6 @@ An Obsidian plugin that remembers a custom **editor line width per file**, so ea
 
 ---
 
-## Features
-
-- **Per-file line width**: every markdown file remembers its own width.
-- **Status bar slider**: drag to resize the current note's width on the fly. Click the number to enter a precise value.
-- **Persistent**: widths are stored in the plugin's `data.json` and survive restarts.
-- **Rename safe**: when you rename or move a file, its saved width follows.
-- **Manage saved files**: settings page lists every customized file with an editable width and a one-click "Reset default".
-- **Commands**:
-  - **Set width for this file…** — open a precise input dialog
-  - **Reset width for this file** — remove the per-file override
-
----
-
-## How it works
-
-When the plugin is enabled, it **turns off** Obsidian's global "Readable line length" setting (and **restores your original preference** when disabled or uninstalled). This avoids any conflict between the plugin's per-file widths and Obsidian's single global width.
-
-The plugin then writes a CSS variable (`--file-line-width`) on each markdown view's content container and ships a small `styles.css` that limits the editor and preview line width to that value. Because the variable lives on each view, **split panes work independently**.
-
-Saved widths are keyed by the file's vault-relative path. A `rename` listener migrates the key when a file is moved or renamed. A `delete` listener cleans up the key.
-
----
-
 ## Usage
 
 ### Status bar slider
@@ -60,12 +37,6 @@ Open the command palette (`Ctrl/Cmd + P`):
 
 ## Installation
 
-### From the community plugin browser (recommended, once approved)
-
-1. In Obsidian, open **Settings → Community plugins → Browse**.
-2. Search for `Remember column width`.
-3. Click **Install**, then **Enable**.
-
 ### Via BRAT (for beta testers)
 
 1. Install the [BRAT](https://github.com/TfTHacker/obsidian42-brat) plugin.
@@ -95,33 +66,6 @@ Open the command palette (`Ctrl/Cmd + P`):
 
 ---
 
-## Development
-
-```bash
-npm install
-npm run dev       # watch & rebuild
-npm run build     # type-check + production build
-```
-
-Project layout:
-
-```
-src/
-  main.ts                     # plugin lifecycle
-  settings.ts                 # settings tab + defaults
-  storage/width-store.ts      # per-file width persistence
-  ui/
-    status-bar-slider.ts      # left-most status bar slider
-    width-applier.ts          # writes CSS var on markdown views
-    width-input-modal.ts      # numeric input dialog
-  events/register-events.ts   # file-open / rename / delete listeners
-  commands/register-commands.ts
-  utils/                      # constants, types, debounce
-styles.css                    # the per-view max-width rule
-```
-
----
-
 ## License
 
-[0BSD](LICENSE)
+[MIT](LICENSE)
