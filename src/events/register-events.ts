@@ -4,7 +4,7 @@ import type RememberWidthPlugin from "../main";
 export function registerEvents(plugin: RememberWidthPlugin): void {
 	plugin.registerEvent(
 		plugin.app.workspace.on("file-open", () => {
-			plugin.widthApplier.applyToAll();
+			applyIfEnabled(plugin);
 			plugin.statusBar?.refresh();
 		}),
 	);
@@ -17,7 +17,7 @@ export function registerEvents(plugin: RememberWidthPlugin): void {
 
 	plugin.registerEvent(
 		plugin.app.workspace.on("layout-change", () => {
-			plugin.widthApplier.applyToAll();
+			applyIfEnabled(plugin);
 			plugin.statusBar?.refresh();
 		}),
 	);
@@ -38,4 +38,17 @@ export function registerEvents(plugin: RememberWidthPlugin): void {
 			}
 		}),
 	);
+}
+
+/**
+ * Respect the user's enable switch. When disabled we must clear our markers
+ * from any views Obsidian just opened, otherwise stale `data-rcw-managed`
+ * attributes keep our CSS active.
+ */
+function applyIfEnabled(plugin: RememberWidthPlugin): void {
+	if (plugin.settings.enabled) {
+		plugin.widthApplier.applyToAll();
+	} else {
+		plugin.widthApplier.clearAll();
+	}
 }
