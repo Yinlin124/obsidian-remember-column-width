@@ -1,90 +1,127 @@
-# Obsidian Sample Plugin
+# Remember column width
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+An Obsidian plugin that remembers a custom **editor line width per file**, so each note can have the reading width that fits it best.
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+> A status bar slider lets you change the current file's width in real time. Each file's width is saved automatically and restored the next time you open it.
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open modal (simple)" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+---
 
-## First time developing plugins?
+## Features
 
-Quick starting guide for new plugin devs:
+- **Per-file line width**: every markdown file remembers its own width.
+- **Status bar slider**: drag to resize the current note's width on the fly. Click the number to enter a precise value.
+- **Persistent**: widths are stored in the plugin's `data.json` and survive restarts.
+- **Rename safe**: when you rename or move a file, its saved width follows.
+- **Manage saved files**: settings page lists every customized file with an editable width and a one-click "Reset default".
+- **Commands**:
+  - **Set width for this file…** — open a precise input dialog
+  - **Reset width for this file** — remove the per-file override
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+---
 
-## Releasing new releases
+## How it works
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+When the plugin is enabled, it **turns off** Obsidian's global "Readable line length" setting (and **restores your original preference** when disabled or uninstalled). This avoids any conflict between the plugin's per-file widths and Obsidian's single global width.
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+The plugin then writes a CSS variable (`--file-line-width`) on each markdown view's content container and ships a small `styles.css` that limits the editor and preview line width to that value. Because the variable lives on each view, **split panes work independently**.
 
-## Adding your plugin to the community plugin list
+Saved widths are keyed by the file's vault-relative path. A `rename` listener migrates the key when a file is moved or renamed. A `delete` listener cleans up the key.
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+---
 
-## How to use
+## Usage
 
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+### Status bar slider
 
-## Manually installing the plugin
+Open any markdown file. A horizontal slider appears at the **far left of the status bar**, with the current width in pixels next to it. Drag to change. The slider's right end automatically tracks the current panel's available width so you never have any "dead travel" past the visible edge.
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+Click the **number** (e.g. `900px`) to open a small dialog for entering an exact value.
 
-## Improve code quality with eslint
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- This project already has eslint preconfigured, you can invoke a check by running`npm run lint`
-- Together with a custom eslint [plugin](https://github.com/obsidianmd/eslint-plugin) for Obsidan specific code guidelines.
-- A GitHub action is preconfigured to automatically lint every commit on all branches.
+### Settings
 
-## Funding URL
+Open **Settings → Community plugins → Remember column width**.
 
-You can include funding URLs where people who use your plugin can financially support it.
+| Setting | Purpose |
+|---|---|
+| **Default width (px)** | Used when a file has no saved width yet |
+| **Minimum width (px)** | Lower bound for the slider and inputs |
+| **Maximum width (px)** | Upper bound for the slider and inputs |
+| **Clear all saved widths** | Removes every per-file override |
+| **Customized files** | List of files with overrides; edit the number to change, or **Reset default** to remove |
 
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
+### Commands
 
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
+Open the command palette (`Ctrl/Cmd + P`):
+
+- **Remember column width: Set width for this file…**
+- **Remember column width: Reset width for this file**
+
+---
+
+## Installation
+
+### From the community plugin browser (recommended, once approved)
+
+1. In Obsidian, open **Settings → Community plugins → Browse**.
+2. Search for `Remember column width`.
+3. Click **Install**, then **Enable**.
+
+### Via BRAT (for beta testers)
+
+1. Install the [BRAT](https://github.com/TfTHacker/obsidian42-brat) plugin.
+2. Run **BRAT: Add a beta plugin for testing** and paste this repo URL.
+3. Enable **Remember column width** under Community plugins.
+
+### Manual
+
+1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](../../releases/latest).
+2. Copy them into `<your-vault>/.obsidian/plugins/remember-column-width/`.
+3. Reload Obsidian and enable the plugin under **Settings → Community plugins**.
+
+---
+
+## Data and privacy
+
+- The plugin stores per-file widths in `<your-vault>/.obsidian/plugins/<plugin-id>/data.json`. Nothing else is read or written.
+- No network requests are made. No telemetry. No third-party services.
+- The plugin temporarily overrides one Obsidian setting (`readableLineLength`) while enabled. The original value is snapshotted on first run and restored when the plugin is disabled or uninstalled.
+
+---
+
+## Compatibility
+
+- Obsidian `1.4.0` or later
+- Desktop only (`isDesktopOnly: true`)
+
+---
+
+## Development
+
+```bash
+npm install
+npm run dev       # watch & rebuild
+npm run build     # type-check + production build
 ```
 
-If you have multiple URLs, you can also do:
+Project layout:
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
+```
+src/
+  main.ts                     # plugin lifecycle
+  settings.ts                 # settings tab + defaults
+  storage/width-store.ts      # per-file width persistence
+  ui/
+    status-bar-slider.ts      # left-most status bar slider
+    width-applier.ts          # writes CSS var on markdown views
+    width-input-modal.ts      # numeric input dialog
+  events/register-events.ts   # file-open / rename / delete listeners
+  commands/register-commands.ts
+  utils/                      # constants, types, debounce
+styles.css                    # the per-view max-width rule
 ```
 
-## API Documentation
+---
 
-See https://docs.obsidian.md
+## License
+
+[0BSD](LICENSE)
