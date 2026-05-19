@@ -1,0 +1,11 @@
+{
+	"id": "Remember-column-width",
+	"name": "Remember column width",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "Remember the width of the columns in the editor.",
+	"author": "YinLin124",
+	"authorUrl": "https://github.com/YinLin124",
+	"fundingUrl": "https://github.com/sponsors/YinLin124",
+	"isDesktopOnly": true
+}

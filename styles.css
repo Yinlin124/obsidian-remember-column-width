@@ -1,0 +1,68 @@
+/* Remember Column Width — force per-file width regardless of global "readable line length" */
+.view-content[data-rcw-managed] .markdown-source-view .cm-sizer,
+.view-content[data-rcw-managed] .markdown-source-view .cm-contentContainer,
+.view-content[data-rcw-managed] .markdown-source-view .cm-content,
+.view-content[data-rcw-managed] .markdown-source-view .cm-line,
+.view-content[data-rcw-managed] .markdown-preview-view .markdown-preview-sizer {
+	max-width: var(--file-line-width) !important;
+	margin-left: auto !important;
+	margin-right: auto !important;
+}
+
+/* Status bar slider */
+.rcw-status-bar {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	/* Push this item to the far left of the status bar (flex container). */
+	order: -9999;
+}
+
+.rcw-status-bar-label {
+	cursor: pointer;
+	user-select: none;
+	font-variant-numeric: tabular-nums;
+	min-width: 5em;
+	text-align: right;
+}
+
+.rcw-status-bar-label:hover {
+	color: var(--text-accent);
+}
+
+.rcw-status-bar-slider {
+	width: 140px;
+	margin: 0;
+	cursor: pointer;
+}
+
+/* Settings tab — file list */
+.rcw-file-list {
+	margin-top: 12px;
+	border-top: 1px solid var(--background-modifier-border);
+	padding-top: 12px;
+}
+
+.rcw-file-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 0;
+	border-bottom: 1px solid var(--background-modifier-border-hover);
+}
+
+.rcw-file-row-path {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-family: var(--font-monospace);
+	font-size: 0.85em;
+}
+
+.rcw-file-row-width {
+	font-variant-numeric: tabular-nums;
+	color: var(--text-muted);
+	min-width: 5em;
+	text-align: right;
+}
