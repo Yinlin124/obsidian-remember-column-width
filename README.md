@@ -4,6 +4,8 @@ An Obsidian plugin that remembers a custom **editor line width per file**, so ea
 
 > A status bar slider lets you change the current file's width in real time. Each file's width is saved automatically and restored the next time you open it.
 
+![Remember column width demo](docs/demo.gif)
+
 ---
 
 ## Usage
